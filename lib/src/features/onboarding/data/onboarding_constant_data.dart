@@ -1,0 +1,17 @@
+final List<String> interests = [
+  "CRICKET",
+  "HIKING",
+  "SURFING",
+  "CAMPING",
+  "SNAPS",
+  "COFFEE",
+  "VAN LIFE",
+  "MUSIC",
+  "ROAD TRIPS",
+  "STARS",
+  "FISHING",
+  "COOKING",
+  "READING",
+  "MAPS",
+  "DOGS",
+];

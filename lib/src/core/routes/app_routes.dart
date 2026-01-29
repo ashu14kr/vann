@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:van_life/src/features/auth/presentation/authentication_screen.dart';
@@ -5,8 +7,11 @@ import 'package:van_life/src/features/chat/presentation/chat_screen.dart';
 import 'package:van_life/src/features/home/presentation/home_screen.dart';
 import 'package:van_life/src/features/onboarding/presentation/account_loading_screen.dart';
 import 'package:van_life/src/features/onboarding/presentation/age_Onboarding_Screen.dart';
+import 'package:van_life/src/features/onboarding/presentation/faceVerification_screen.dart';
 import 'package:van_life/src/features/onboarding/presentation/interest_Onboarding_screen.dart';
 import 'package:van_life/src/features/onboarding/presentation/name_onboaring_screen.dart';
+import 'package:van_life/src/features/onboarding/presentation/profile_image_screen.dart';
+import 'package:van_life/src/features/onboarding/presentation/travelStyle_Onboarding_screen.dart';
 import 'package:van_life/src/features/splash/presentation/splash_screen.dart';
 import 'package:van_life/src/features/travel_progress/presentation/travel_progress.dart';
 
@@ -58,6 +63,18 @@ class AppRouter {
       GoRoute(
         path: '/onboarding-accountLoading',
         builder: (context, state) => const AccountLoadingScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding-travelStyle',
+        builder: (context, state) => TravelStyleScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding-profileImage',
+        builder: (context, state) => ProfileImageScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding-verification',
+        builder: (context, state) => FaceVerificationScreen(),
       ),
       // /home
       GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),

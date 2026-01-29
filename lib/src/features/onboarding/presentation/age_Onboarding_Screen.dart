@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:van_life/src/features/onboarding/presentation/provider.dart/onboarding_provider.dart';
 
 import 'widgets/build_logo.dart';
 
-class AgeOnboardingScreen extends StatefulWidget {
+class AgeOnboardingScreen extends ConsumerStatefulWidget {
   const AgeOnboardingScreen({super.key});
 
   @override
-  State<AgeOnboardingScreen> createState() => _AgeOnboardingScreenState();
+  ConsumerState<AgeOnboardingScreen> createState() =>
+      _AgeOnboardingScreenState();
 }
 
-class _AgeOnboardingScreenState extends State<AgeOnboardingScreen> {
-  final TextEditingController _ageController = TextEditingController();
-
+class _AgeOnboardingScreenState extends ConsumerState<AgeOnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,7 +45,6 @@ class _AgeOnboardingScreenState extends State<AgeOnboardingScreen> {
 
               // 3. AGE INPUT (Poppins)
               TextField(
-                controller: _ageController,
                 textAlign: TextAlign.center,
                 autofocus: true,
                 cursorColor: Colors.white,
@@ -55,7 +54,9 @@ class _AgeOnboardingScreenState extends State<AgeOnboardingScreen> {
                   fontWeight: FontWeight.w700,
                 ),
                 onSubmitted: (value) {
-                  context.push('/onboarding-gender');
+                  ref
+                      .read(onboardingProvider.notifier)
+                      .addAge(age: value, context: context);
                 },
                 decoration: InputDecoration(
                   border: InputBorder.none,

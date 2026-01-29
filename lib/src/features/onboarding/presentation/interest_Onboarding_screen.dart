@@ -1,41 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:van_life/src/features/onboarding/presentation/provider.dart/onboarding_provider.dart';
 import 'dart:math';
 
+import '../data/onboarding_constant_data.dart';
 import 'widgets/build_button.dart';
 import 'widgets/build_logo.dart';
 import 'widgets/interest_card.dart';
 
-class InterestOnboardingScreen extends StatefulWidget {
+class InterestOnboardingScreen extends ConsumerStatefulWidget {
   const InterestOnboardingScreen({super.key});
 
   @override
-  State<InterestOnboardingScreen> createState() =>
+  ConsumerState<InterestOnboardingScreen> createState() =>
       _InterestOnboardingScreenState();
 }
 
-class _InterestOnboardingScreenState extends State<InterestOnboardingScreen> {
-  final List<String> interests = [
-    "CRICKET",
-    "HIKING",
-    "SURFING",
-    "CAMPING",
-    "SNAPS",
-    "COFFEE",
-    "VAN LIFE",
-    "MUSIC",
-    "ROAD TRIPS",
-    "STARS",
-    "FISHING",
-    "COOKING",
-    "READING",
-    "MAPS",
-    "DOGS",
-  ];
-
-  final Set<int> selectedIndices = {};
+class _InterestOnboardingScreenState
+    extends ConsumerState<InterestOnboardingScreen> {
+  final List<String> selectedIndices = [];
 
   @override
   Widget build(BuildContext context) {
@@ -77,13 +62,13 @@ class _InterestOnboardingScreenState extends State<InterestOnboardingScreen> {
                       child: InterestCard(
                         label: interests[index],
                         isRounded: Random(index).nextBool(),
-                        isSelected: selectedIndices.contains(index),
+                        isSelected: selectedIndices.contains(interests[index]),
                         onTap: () {
                           setState(() {
-                            if (selectedIndices.contains(index)) {
-                              selectedIndices.remove(index);
+                            if (selectedIndices.contains(interests[index])) {
+                              selectedIndices.remove(interests[index]);
                             } else {
-                              selectedIndices.add(index);
+                              selectedIndices.add(interests[index]);
                             }
                           });
                         },
@@ -98,7 +83,9 @@ class _InterestOnboardingScreenState extends State<InterestOnboardingScreen> {
             BuildButton(
               canContinue: canContinue,
               onTap: () {
-                context.push('/onboarding-accountLoading');
+                ref
+                    .read(onboardingProvider.notifier)
+                    .addInterest(interest: selectedIndices, context: context);
               },
             ),
           ],

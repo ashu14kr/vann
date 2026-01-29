@@ -1,25 +1,23 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:van_life/src/features/onboarding/presentation/provider.dart/onboarding_provider.dart';
 
 import 'widgets/build_logo.dart';
 
-class AccountLoadingScreen extends StatefulWidget {
+class AccountLoadingScreen extends ConsumerStatefulWidget {
   const AccountLoadingScreen({super.key});
 
   @override
-  State<AccountLoadingScreen> createState() => _AccountLoadingScreenState();
+  ConsumerState<AccountLoadingScreen> createState() =>
+      _AccountLoadingScreenState();
 }
 
-class _AccountLoadingScreenState extends State<AccountLoadingScreen> {
+class _AccountLoadingScreenState extends ConsumerState<AccountLoadingScreen> {
   @override
   void initState() {
-    Timer(const Duration(seconds: 3), () {
-      context.go('/home');
-    });
+    ref.read(onboardingProvider.notifier).navigateToHome(context: context);
     super.initState();
   }
 

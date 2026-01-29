@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:van_life/src/features/auth/presentation/provider/authentication_provider.dart';
 
 import 'widgets/build_bg.dart';
 import 'widgets/build_button.dart';
@@ -9,11 +11,11 @@ import 'widgets/build_dark.dart';
 import 'widgets/build_logo.dart';
 import 'widgets/fade_slideIn.dart';
 
-class AuthenticationScreen extends StatelessWidget {
+class AuthenticationScreen extends ConsumerWidget {
   const AuthenticationScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: Stack(
         children: [
@@ -52,7 +54,11 @@ class AuthenticationScreen extends StatelessWidget {
                   FadeSlideIn(
                     delay: 0.6,
                     child: BuildButton(
-                      onTap: () => context.go('/onboarding-name'),
+                      onTap: () {
+                        ref
+                            .read(authenticationProvider.notifier)
+                            .signInWithApple(context: context);
+                      },
                     ),
                   ),
                   SizedBox(height: 30.h),

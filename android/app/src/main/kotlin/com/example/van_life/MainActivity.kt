@@ -1,4 +1,4 @@
-package com.example.van_life
+package com.vann.vanlife
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:van_life/src/features/onboarding/presentation/provider.dart/onboarding_provider.dart';
 
 import 'widgets/build_logo.dart';
 import 'widgets/fade_slideIn.dart';
 
-class NameOnboardingScreen extends StatefulWidget {
+class NameOnboardingScreen extends ConsumerStatefulWidget {
   const NameOnboardingScreen({super.key});
 
   @override
-  State<NameOnboardingScreen> createState() => _NameOnboardingScreenState();
+  ConsumerState<NameOnboardingScreen> createState() =>
+      _NameOnboardingScreenState();
 }
 
-class _NameOnboardingScreenState extends State<NameOnboardingScreen> {
-  final TextEditingController _nameController = TextEditingController();
-
+class _NameOnboardingScreenState extends ConsumerState<NameOnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,7 +51,6 @@ class _NameOnboardingScreenState extends State<NameOnboardingScreen> {
               FadeSlideIn(
                 delay: 0.5,
                 child: TextField(
-                  controller: _nameController,
                   textAlign: TextAlign.center,
                   autofocus: true,
                   cursorColor: Colors.white,
@@ -61,7 +60,9 @@ class _NameOnboardingScreenState extends State<NameOnboardingScreen> {
                     fontWeight: FontWeight.w700,
                   ),
                   onSubmitted: (value) {
-                    context.push('/onboarding-age');
+                    ref
+                        .read(onboardingProvider.notifier)
+                        .addName(name: value, context: context);
                   },
                   decoration: InputDecoration(
                     border: InputBorder.none,
