@@ -28,7 +28,18 @@ class ChatScreen extends StatelessWidget {
             // 1. HEADER
             Padding(
               padding: EdgeInsets.fromLTRB(25.w, 30.h, 25.w, 10.h),
-              child: Text("CHATS", style: titleStyle),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("CHATS", style: titleStyle),
+                  IconButton(
+                    onPressed: () {
+                      context.pop();
+                    },
+                    icon: Icon(Icons.close, color: Colors.white, size: 30),
+                  ),
+                ],
+              ),
             ),
 
             // 2. STICKER BOXES (Rotated & Bold)

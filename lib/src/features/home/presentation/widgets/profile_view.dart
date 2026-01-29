@@ -5,7 +5,7 @@ class ProfileView extends StatelessWidget {
   const ProfileView({super.key, required this.onTap, required this.image});
 
   final VoidCallback onTap;
-  final String image;
+  final List<String> image;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,13 @@ class ProfileView extends StatelessWidget {
         child: CircleAvatar(
           radius: 34.r,
           backgroundColor: Colors.white,
-          child: CircleAvatar(radius: 31.r, backgroundImage: AssetImage(image)),
+          child: CircleAvatar(
+            radius: 31.r,
+            backgroundImage:
+                image.isEmpty
+                    ? AssetImage('assets/images/male_avatar.png')
+                    : NetworkImage(image[0]),
+          ),
         ),
       ),
     );

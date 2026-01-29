@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart'; // Added import
 import 'package:apple_maps_flutter/apple_maps_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:van_life/src/features/event/presentation/create_event_bottomSheet.dart';
 import 'package:van_life/src/features/event/presentation/event_detail_bottomSheet.dart';
+import 'package:van_life/src/features/profile/presentation/provider/profile_provider.dart';
 
 import '../../profile/presentation/profile_BottomCard.dart';
 import 'widgets/dark_overlay.dart';
 import 'widgets/general_ui_widgets.dart';
 import 'widgets/profile_view.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   BitmapDescriptor? _carIcon;
   Set<Annotation> _annotations = {};
 
@@ -115,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       );
                     },
-                    image: 'assets/images/profile.png',
+                    image: ref.watch(profileProvider).userModel.profileImages,
                   ),
                 ],
               ),

@@ -57,7 +57,7 @@ class AuthenticationScreen extends ConsumerWidget {
                       onTap: () {
                         ref
                             .read(authenticationProvider.notifier)
-                            .signInWithApple(context: context);
+                            .signIn(context: context);
                       },
                     ),
                   ),
