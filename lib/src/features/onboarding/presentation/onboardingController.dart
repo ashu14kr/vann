@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:van_life/src/core/services/storage_service.dart';
@@ -65,5 +66,43 @@ class Onboardingcontroller extends Notifier<OnboardingStateModel> {
     Timer(const Duration(seconds: 3), () {
       context.go('/home');
     });
+  }
+
+  dummyUser({required BuildContext context, required String uid}) async {
+    EasyLoading.show();
+    UserModel newUser = UserModel(
+      uid: uid,
+      displayName: "Luna Rivera",
+      email: "luna.rivera@example.com",
+      isOnboarded: true,
+      isVerified: true,
+      verificationImageUrl: "https://i.pravatar.cc/300?u=luna",
+      age: "24",
+      gender: "Female",
+      travelType: "Solo Backpacking / Van Life",
+      interests: [
+        "Photography",
+        "Hiking",
+        "Yoga",
+        "Specialty Coffee",
+        "Sustainable Living",
+      ],
+      bio:
+          "Chasing sunsets and mountain peaks. 🏔️ Currently living in my converted 2019 Sprinter. Let's find the best hidden gems together!",
+      currentCountry: "USA",
+      visitedScratchMap: ["USA", "Mexico", "Canada", "Iceland"],
+      profileImages: [
+        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1", // Aesthetic portrait
+        "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f",
+      ],
+      vehicleImages: [
+        "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7", // Van interior photo
+      ],
+      eventsHosted: [],
+      eventsJoined: [],
+      eventsSaved: [],
+    );
+    await _db.collection('users').doc(newUser.uid).set(newUser.toMap());
+    EasyLoading.dismiss();
   }
 }

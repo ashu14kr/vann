@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
             builder: EasyLoading.init(),
             debugShowCheckedModeBanner: false,
             routerConfig: AppRouter.router,
-            title: 'Van-Life',
+            title: 'VANN',
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             ),

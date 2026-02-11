@@ -39,6 +39,49 @@ class UserModel {
     required this.eventsSaved,
   });
 
+  // --- THE COPYWITH METHOD ---
+  UserModel copyWith({
+    String? uid,
+    String? displayName,
+    String? email,
+    bool? isOnboarded,
+    bool? isVerified,
+    String? verificationImageUrl,
+    String? age,
+    String? gender,
+    String? travelType,
+    List<String>? interests,
+    String? bio,
+    String? currentCountry,
+    List<String>? visitedScratchMap,
+    List<String>? profileImages,
+    List<String>? vehicleImages,
+    List<String>? eventsHosted,
+    List<String>? eventsJoined,
+    List<String>? eventsSaved,
+  }) {
+    return UserModel(
+      uid: uid ?? this.uid,
+      displayName: displayName ?? this.displayName,
+      email: email ?? this.email,
+      isOnboarded: isOnboarded ?? this.isOnboarded,
+      isVerified: isVerified ?? this.isVerified,
+      verificationImageUrl: verificationImageUrl ?? this.verificationImageUrl,
+      age: age ?? this.age,
+      gender: gender ?? this.gender,
+      travelType: travelType ?? this.travelType,
+      interests: interests ?? this.interests,
+      bio: bio ?? this.bio,
+      currentCountry: currentCountry ?? this.currentCountry,
+      visitedScratchMap: visitedScratchMap ?? this.visitedScratchMap,
+      profileImages: profileImages ?? this.profileImages,
+      vehicleImages: vehicleImages ?? this.vehicleImages,
+      eventsHosted: eventsHosted ?? this.eventsHosted,
+      eventsJoined: eventsJoined ?? this.eventsJoined,
+      eventsSaved: eventsSaved ?? this.eventsSaved,
+    );
+  }
+
   // Convert Firestore Document to Dart Object
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(

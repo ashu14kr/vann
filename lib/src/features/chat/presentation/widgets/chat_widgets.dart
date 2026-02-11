@@ -48,76 +48,77 @@ Widget buildLargeChatTile({
   required String time,
   required VoidCallback ontap,
 }) {
-  return InkWell(
+  return GestureDetector(
     onTap: ontap,
     child: Container(
-      margin: EdgeInsets.only(bottom: 25.h),
-      padding: EdgeInsets.all(22.r),
       decoration: BoxDecoration(
         color: const Color(0xFF111111),
         borderRadius: BorderRadius.circular(35.r),
       ),
-      child: Row(
-        children: [
-          // Avatar with the thick colored border
-          Container(
-            padding: EdgeInsets.all(3.5.r),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors:
-                    isEvent
-                        ? [const Color(0xFF0047FF), const Color(0xFF00D1FF)]
-                        : [const Color(0xFFF2BC56), const Color(0xFFF9E364)],
+      child: Padding(
+        padding: EdgeInsets.all(22.r),
+        child: Row(
+          children: [
+            // Avatar with the thick colored border
+            Container(
+              padding: EdgeInsets.all(3.5.r),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors:
+                      isEvent
+                          ? [const Color(0xFF0047FF), const Color(0xFF00D1FF)]
+                          : [const Color(0xFFF2BC56), const Color(0xFFF9E364)],
+                ),
+              ),
+              child: CircleAvatar(
+                radius: 35.r,
+                backgroundImage: AssetImage(asset),
               ),
             ),
-            child: CircleAvatar(
-              radius: 35.r,
-              backgroundImage: AssetImage(asset),
-            ),
-          ),
-          SizedBox(width: 20.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      name,
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 20.sp,
+            SizedBox(width: 20.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        name,
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 20.sp,
+                        ),
                       ),
-                    ),
-                    Text(
-                      time,
-                      style: GoogleFonts.poppins(
-                        color: Colors.white24,
-                        fontSize: 12.sp,
+                      Text(
+                        time,
+                        style: GoogleFonts.poppins(
+                          color: Colors.white24,
+                          fontSize: 12.sp,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 6.h),
-                Text(
-                  message,
-                  style: GoogleFonts.poppins(
-                    color: Colors.white60,
-                    fontSize: 15.sp,
-                    height: 1.3,
+                    ],
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                  SizedBox(height: 6.h),
+                  Text(
+                    message,
+                    style: GoogleFonts.poppins(
+                      color: Colors.white60,
+                      fontSize: 15.sp,
+                      height: 1.3,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-          ),
-          SizedBox(width: 10.w),
-          Icon(Icons.arrow_forward_ios, color: Colors.white10, size: 18.sp),
-        ],
+            SizedBox(width: 10.w),
+            Icon(Icons.arrow_forward_ios, color: Colors.white10, size: 18.sp),
+          ],
+        ),
       ),
     ),
   );

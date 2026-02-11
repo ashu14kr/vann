@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
+import '../../../event/presentation/provider/provider.dart';
 import 'dash_painter.dart';
+import 'profile_general_widget.dart';
 
 Widget buildGrabHandle() {
   return Center(
@@ -24,7 +28,7 @@ Widget buildTopActions() {
   );
 }
 
-Widget buildAvatarWithDynamicName(String fullName) {
+Widget buildAvatarWithDynamicName(String fullName, List<String> image) {
   final names = fullName.split(" ");
   return Column(
     children: [
@@ -39,7 +43,10 @@ Widget buildAvatarWithDynamicName(String fullName) {
             ),
             child: CircleAvatar(
               radius: 75.r,
-              backgroundImage: const AssetImage('assets/images/profile.png'),
+              backgroundImage:
+                  image.isEmpty
+                      ? AssetImage('assets/images/male_avatar.png')
+                      : NetworkImage(image.first),
             ),
           ),
           Positioned(
@@ -90,14 +97,14 @@ Widget nameSticker(String text) {
   );
 }
 
-Widget buildIdentityBadges() {
+Widget buildIdentityBadges(String travelType, String age, String location) {
   return Column(
     children: [
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            "🚐 Weekend Traveller",
+            "🚐 $travelType",
             style: GoogleFonts.poppins(
               color: Colors.white,
               fontSize: 18.sp,
@@ -110,14 +117,14 @@ Widget buildIdentityBadges() {
       ),
       SizedBox(height: 4.h),
       Text(
-        "🎂 27yo  📍 USA",
+        "🎂 $age  📍 $location",
         style: GoogleFonts.poppins(color: Colors.white70, fontSize: 16.sp),
       ),
     ],
   );
 }
 
-Widget buildPlacesBanner() {
+Widget buildPlacesBanner(int totalPlaces) {
   return Container(
     height: 120.h,
     width: double.infinity,
@@ -149,7 +156,7 @@ Widget buildPlacesBanner() {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                buildPlacesStrokedText("10"),
+                buildPlacesStrokedText(totalPlaces.toString()),
                 buildPlacesStrokedText("Places"),
               ],
             ),
@@ -209,7 +216,7 @@ Widget buildDashedBorder() {
   );
 }
 
-Widget buildSectionHeader(String title) {
+Widget buildSectionHeader(String title, bool isViewAll) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
@@ -221,7 +228,7 @@ Widget buildSectionHeader(String title) {
           fontWeight: FontWeight.w900,
         ),
       ),
-      if (title == "My Baby")
+      if (title == "My Baby" && isViewAll)
         Text(
           "View All",
           style: TextStyle(color: Colors.white54, fontSize: 14.sp),
@@ -230,126 +237,237 @@ Widget buildSectionHeader(String title) {
   );
 }
 
-Widget buildEventCard() {
-  return Container(
+Widget buildEventCard(
+  Function(String eventId) ontap,
+  List<String> eventHosted,
+  List<String> eventJoined,
+  List<String> eventSaved,
+  BuildContext context,
+) {
+  final List<String> allEvents =
+      {...eventHosted, ...eventJoined, ...eventSaved}.toList();
+
+  return SizedBox(
     height: 280.h,
     width: double.infinity,
-    alignment: Alignment.bottomLeft,
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(30.r),
-      image: const DecorationImage(
-        image: AssetImage('assets/images/event.jpg'),
-        fit: BoxFit.cover,
-      ),
-    ),
-    child: Container(
-      padding: EdgeInsets.all(20.r),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30.r),
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Colors.transparent, Colors.black.withOpacity(0.85)],
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Sunset Camp",
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 24.sp,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            "Sun, 2 Feb 2026",
-            style: TextStyle(color: Colors.white70, fontSize: 14.sp),
-          ),
-        ],
-      ),
+    child: Consumer(
+      builder: (context, ref, child) {
+        if (allEvents.isEmpty) return buildEmptyEventCard();
+
+        final eventsData = ref.watch(eventController).events;
+
+        return ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.only(right: 20.w),
+          physics: const BouncingScrollPhysics(),
+          itemCount: allEvents.length,
+          itemBuilder: (context, index) {
+            final String eventId = allEvents[index];
+            final evnt = eventsData.firstWhere(
+              (element) => element.eventId == eventId,
+              orElse: () => eventsData.first,
+            );
+
+            return Padding(
+              padding: EdgeInsets.only(right: 15.w),
+              child: InkWell(
+                onTap: () => ontap(eventId),
+                borderRadius: BorderRadius.circular(30.r),
+                child: Container(
+                  height: 280.h,
+                  width: 200.w,
+                  // This ensures the content stays at the bottom
+                  alignment: Alignment.bottomCenter,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30.r),
+                    image: DecorationImage(
+                      image: NetworkImage(evnt.coverImage),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  child: Container(
+                    // FIX: Constrain the height of the black info section
+                    width: 200.w,
+                    padding: EdgeInsets.all(16.r),
+                    decoration: BoxDecoration(
+                      // Keep the bottom corners rounded to match the parent
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(30.r),
+                      ),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: const [0.0, 0.6], // Makes the transition sharper
+                        colors: [
+                          Colors.black.withOpacity(0.0),
+                          Colors.black.withOpacity(0.85),
+                        ],
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min, // Shrinks to fit the text
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          evnt.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          DateFormat(
+                            'EEE, MMM d • h:mm a',
+                          ).format(evnt.startDate),
+                          style: GoogleFonts.poppins(
+                            color: Colors.white70,
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: 15.h),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     ),
   );
 }
 
-Widget buildInterestsWrap() {
-  final List<Map<String, dynamic>> tags = [
-    {'text': 'TROLLING', 'color': Colors.yellow, 'rot': -0.05},
-    {'text': 'CRICKET', 'color': const Color(0xFFA066FF), 'rot': 0.04},
-    {'text': 'CAMPING', 'color': const Color(0xFF00FF75), 'rot': -0.03},
-    {'text': 'OFF-ROADING', 'color': Colors.white, 'rot': 0.05},
-    {'text': 'HIKING', 'color': const Color(0xFF00D1FF), 'rot': -0.02},
+Widget buildInterestsWrap(List<String> interests) {
+  // Predefined lists for a variety of "sticker" looks
+  final List<Color> stickerColors = [
+    Colors.yellow,
+    const Color(0xFFA066FF), // Purple
+    const Color(0xFF00FF75), // Green
+    Colors.white,
+    const Color(0xFF00D1FF), // Blue
+    const Color(0xFFFF5C00), // Orange
   ];
+
+  final List<double> rotations = [-0.05, 0.04, -0.03, 0.05, -0.02, 0.03];
 
   return Wrap(
     spacing: 12.w,
     runSpacing: 18.h,
     children:
-        tags
-            .map(
-              (tag) => Transform.rotate(
-                angle: tag['rot'],
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 18.w,
-                    vertical: 10.h,
+        interests.asMap().entries.map((entry) {
+          int index = entry.key;
+          String text = entry.value;
+
+          // Use modulo (%) to cycle through colors and rotations regardless of list length
+          Color color = stickerColors[index % stickerColors.length];
+          double angle = rotations[index % rotations.length];
+
+          return Transform.rotate(
+            angle: angle,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
+              decoration: BoxDecoration(
+                color: color,
+                border: Border.all(color: Colors.white, width: 2.w),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    offset: Offset(4.w, 4.h),
+                    blurRadius: 0,
                   ),
-                  decoration: BoxDecoration(
-                    color: tag['color'],
-                    border: Border.all(color: Colors.white, width: 2.w),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        offset: Offset(4.w, 4.h),
-                        blurRadius: 0,
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    tag['text'],
-                    style: GoogleFonts.robotoCondensed(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16.sp,
-                      letterSpacing: -0.5.w,
-                      color: Colors.black,
-                    ),
-                  ),
+                ],
+              ),
+              child: Text(
+                text.toUpperCase(), // Keeping the "Sticker" aesthetic
+                style: GoogleFonts.robotoCondensed(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16.sp,
+                  letterSpacing: -0.5.w,
+                  color: Colors.black,
                 ),
               ),
-            )
-            .toList(),
+            ),
+          );
+        }).toList(),
   );
 }
 
-Widget buildVehicleCard() {
-  return ClipRRect(
-    borderRadius: BorderRadius.circular(25.r),
-    child: Image.asset(
-      'assets/images/van.jpg',
-      height: 220.h,
-      width: double.infinity,
-      fit: BoxFit.cover,
-    ),
-  );
+Widget buildVehicleCard({required List<String> vehileImage}) {
+  return vehileImage.isEmpty
+      ? buildEmptyVehicleCard()
+      : ClipRRect(
+        borderRadius: BorderRadius.circular(25.r),
+        child: Image.network(
+          vehileImage.first,
+          width: double.infinity,
+          height: 220.h,
+          fit: BoxFit.cover,
+        ),
+      );
 }
 
-Widget buildConnectButton() {
+Widget buildEmptyVehicleCard() {
   return Container(
     width: double.infinity,
-    height: 65.h,
+    height: 220.h,
     decoration: BoxDecoration(
-      color: const Color(0xFFFFE600),
-      borderRadius: BorderRadius.circular(35.r),
+      color: const Color(0xFF161616), // Slightly darker to look "passive"
+      borderRadius: BorderRadius.circular(25.r),
+      border: Border.all(color: Colors.white.withOpacity(0.05), width: 1.5),
     ),
-    child: Center(
-      child: Text(
-        "Connect",
-        style: GoogleFonts.robotoCondensed(
-          color: Colors.black,
-          fontSize: 26.sp,
-          fontWeight: FontWeight.w900,
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Using a bus/van icon to signal what is missing
+        Icon(
+          Icons.directions_bus_filled_outlined,
+          color: Colors.white10,
+          size: 45.sp,
+        ),
+        SizedBox(height: 16.h),
+        Text(
+          "NO VEHICLE ADDED",
+          style: GoogleFonts.robotoCondensed(
+            color: Colors.white24, // Faded because it's an empty state
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+          ),
+        ),
+        SizedBox(height: 4.h),
+        Text(
+          "This user hasn't shared their van yet",
+          style: GoogleFonts.poppins(color: Colors.white12, fontSize: 12.sp),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget buildConnectButton(VoidCallback onTap) {
+  return InkWell(
+    onTap: onTap,
+    child: Container(
+      width: double.infinity,
+      height: 65.h,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFE600),
+        borderRadius: BorderRadius.circular(35.r),
+      ),
+      child: Center(
+        child: Text(
+          "Connect",
+          style: GoogleFonts.robotoCondensed(
+            color: Colors.black,
+            fontSize: 26.sp,
+            fontWeight: FontWeight.w900,
+          ),
         ),
       ),
     ),

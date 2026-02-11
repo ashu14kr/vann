@@ -51,7 +51,7 @@ Widget buildFloatingHeader(
                     ),
                     child: CircleAvatar(
                       radius: 24.r,
-                      backgroundImage: AssetImage(asset),
+                      backgroundImage: NetworkImage(asset),
                     ),
                   ),
                   SizedBox(width: 15.w),
@@ -139,55 +139,62 @@ Widget buildTimestamp(String time) {
 }
 
 // --- BIGGER INPUT TERMINAL ---
-Widget buildInputTerminal() {
-  return Container(
-    padding: EdgeInsets.fromLTRB(20.w, 15.h, 20.w, 35.h),
-    decoration: BoxDecoration(
-      color: Colors.black,
-      border: Border(top: BorderSide(color: Colors.white10, width: 1.5.w)),
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 22.w),
-            height: 60.h,
-            decoration: BoxDecoration(
-              color: const Color(0xFF111111),
-              borderRadius: BorderRadius.circular(18.r),
-              border: Border.all(color: Colors.white24, width: 1.5.w),
-            ),
-            child: Center(
-              child: TextField(
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 18.sp,
-                ),
-                decoration: InputDecoration(
-                  hintText: "TYPE SOMETHING...",
-                  hintStyle: GoogleFonts.robotoCondensed(
-                    color: Colors.white24,
-                    fontWeight: FontWeight.w700,
+Widget buildInputTerminal(
+  VoidCallback onSend,
+  TextEditingController controller,
+) {
+  return InkWell(
+    onTap: onSend,
+    child: Container(
+      padding: EdgeInsets.fromLTRB(20.w, 15.h, 20.w, 35.h),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        border: Border(top: BorderSide(color: Colors.white10, width: 1.5.w)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 22.w),
+              height: 60.h,
+              decoration: BoxDecoration(
+                color: const Color(0xFF111111),
+                borderRadius: BorderRadius.circular(18.r),
+                border: Border.all(color: Colors.white24, width: 1.5.w),
+              ),
+              child: Center(
+                child: TextField(
+                  controller: controller,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
                     fontSize: 18.sp,
                   ),
-                  border: InputBorder.none,
+                  decoration: InputDecoration(
+                    hintText: "TYPE SOMETHING...",
+                    hintStyle: GoogleFonts.robotoCondensed(
+                      color: Colors.white24,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18.sp,
+                    ),
+                    border: InputBorder.none,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        SizedBox(width: 15.w),
-        Container(
-          height: 60.h,
-          width: 60.w,
-          decoration: BoxDecoration(
-            color: const Color(0xFF0047FF),
-            borderRadius: BorderRadius.circular(18.r),
-            border: Border.all(color: Colors.white, width: 2.5.w),
+          SizedBox(width: 15.w),
+          Container(
+            height: 60.h,
+            width: 60.w,
+            decoration: BoxDecoration(
+              color: const Color(0xFF0047FF),
+              borderRadius: BorderRadius.circular(18.r),
+              border: Border.all(color: Colors.white, width: 2.5.w),
+            ),
+            child: Icon(Icons.send_rounded, color: Colors.white, size: 28.sp),
           ),
-          child: Icon(Icons.send_rounded, color: Colors.white, size: 28.sp),
-        ),
-      ],
+        ],
+      ),
     ),
   );
 }

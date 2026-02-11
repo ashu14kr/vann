@@ -1,18 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart'; // Added import
+import '../../../share/providers/shared_providers.dart';
+import '../../profile/data/models/user_model.dart';
+import '../data/models/msg_model.dart';
+import 'provider/chat_provider.dart';
 import 'widgets/chatDetails_Widgets.dart';
 
-class DetailedChatScreen extends StatelessWidget {
-  final String name;
-  final String asset;
+class DetailedChatScreen extends ConsumerStatefulWidget {
+  final UserModel user;
   final bool isEvent;
 
   const DetailedChatScreen({
     super.key,
-    this.name = "SUNSET CHAMP",
-    this.asset = 'assets/images/event.jpg',
+    required this.user,
     this.isEvent = true,
   });
+
+  @override
+  ConsumerState<DetailedChatScreen> createState() => _DetailedChatScreenState();
+}
+
+class _DetailedChatScreenState extends ConsumerState<DetailedChatScreen> {
+  TextEditingController _messageController = TextEditingController();
+
+  late String chatId;
+
+  @override
+  void initState() {
+    super.initState();
+    // Ensure the ID is always alphabetical so it matches the DB
+    final myId = ref.read(firebaseAuthProvider).currentUser!.uid;
+    final otherId = widget.user.uid;
+    final List<String> ids = [myId, otherId]..sort();
+    chatId = ids.join('_');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,27 +44,64 @@ class DetailedChatScreen extends StatelessWidget {
       body: Column(
         children: [
           // 1. BIGGER FLOATING HEADER
-          buildFloatingHeader(context, isEvent, asset, name),
+          buildFloatingHeader(
+            context,
+            false,
+            widget.user.profileImages.first,
+            widget.user.displayName,
+          ),
 
           // 2. CHAT TIMELINE (Bigger Fonts)
           Expanded(
-            child: ListView(
-              reverse: true,
-              // Applied .w and .h to padding for consistent spacing
-              padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 110.h),
-              children: [
-                buildStickerMessage("Night guys, see ya!", isMe: true),
-                buildMessageWithAvatar(
-                  "Night, sam! Don't forget the gear.",
-                  asset: 'assets/images/profile.png',
-                ),
-                buildTimestamp("TODAY 12:15 AM"),
-              ],
+            child: StreamBuilder(
+              stream: ref.read(chatProvider.notifier).fetchMessages(chatId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text("Error loading messages"));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: Text("No messages yet"));
+                } else {
+                  return ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 110.h),
+                    //buildTimestamp("TODAY 12:15 AM"),
+                    itemBuilder: (context, index) {
+                      final message = snapshot.data![index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        child: buildStickerMessage(
+                          message.content,
+                          isMe:
+                              message.senderId ==
+                              ref.read(firebaseAuthProvider).currentUser!.uid,
+                        ),
+                      );
+                    },
+                  );
+                }
+              },
             ),
           ),
 
           // 3. BOLDER INPUT TERMINAL
-          buildInputTerminal(),
+          buildInputTerminal(() async {
+            if (_messageController.text.trim().isEmpty) return;
+            final senderId = ref.read(firebaseAuthProvider).currentUser!.uid;
+            await ref
+                .read(chatProvider.notifier)
+                .sendMessage(
+                  MessageModel(
+                    senderId: senderId,
+                    content: _messageController.text,
+                    timestamp: DateTime.now(),
+                  ),
+                  widget.user.uid,
+                );
+            HapticFeedback.selectionClick();
+            _messageController.clear();
+          }, _messageController),
         ],
       ),
     );

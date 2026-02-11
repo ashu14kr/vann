@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart'; // Added import
+import 'package:go_router/go_router.dart';
+import 'package:van_life/src/features/profile/data/models/user_model.dart';
 
 import 'widgets/others_user_general_widgets.dart';
 
 class OtherUserProfileCard extends StatelessWidget {
-  final String otherUserName;
+  final UserModel user;
 
-  const OtherUserProfileCard({super.key, required this.otherUserName});
+  const OtherUserProfileCard({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -35,23 +37,44 @@ class OtherUserProfileCard extends StatelessWidget {
                       // Large bottom padding (120) so content clears the Connect button
                       padding: EdgeInsets.fromLTRB(20.w, 10.h, 20.w, 120.h),
                       children: [
-                        buildTopActions(),
-                        buildAvatarWithDynamicName(otherUserName),
-                        buildIdentityBadges(),
+                        // buildTopActions(),
+                        SizedBox(height: 12.h),
+                        buildAvatarWithDynamicName(
+                          user.displayName,
+                          user.profileImages,
+                        ),
+                        buildIdentityBadges(
+                          user.travelType,
+                          user.age,
+                          user.currentCountry,
+                        ),
                         SizedBox(height: 25.h),
-                        buildPlacesBanner(),
+                        buildPlacesBanner(user.visitedScratchMap.length),
                         SizedBox(height: 30.h),
-                        buildSectionHeader("Events"),
+                        buildSectionHeader(
+                          "Events",
+                          [...user.eventsHosted, ...user.eventsJoined].length >
+                              2,
+                        ),
                         SizedBox(height: 15.h),
-                        buildEventCard(),
+                        buildEventCard(
+                          (eventId) {},
+                          user.eventsHosted,
+                          user.eventsJoined,
+                          user.eventsSaved,
+                          context,
+                        ),
                         SizedBox(height: 30.h),
-                        buildSectionHeader("My Interests"),
+                        buildSectionHeader("My Interests", false),
                         SizedBox(height: 15.h),
-                        buildInterestsWrap(),
+                        buildInterestsWrap(user.interests),
                         SizedBox(height: 30.h),
-                        buildSectionHeader("My Baby"),
+                        buildSectionHeader(
+                          "My Baby",
+                          user.vehicleImages.length > 1,
+                        ),
                         SizedBox(height: 15.h),
-                        buildVehicleCard(),
+                        buildVehicleCard(vehileImage: user.vehicleImages),
                       ],
                     ),
                   ),
@@ -87,7 +110,9 @@ class OtherUserProfileCard extends StatelessWidget {
                 bottom: 30.h,
                 left: 20.w,
                 right: 20.w,
-                child: buildConnectButton(),
+                child: buildConnectButton(() {
+                  context.push('/chat-details', extra: user);
+                }),
               ),
             ],
           ),

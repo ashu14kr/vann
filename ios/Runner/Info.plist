@@ -53,5 +53,7 @@
     <string>Vann needs camera access for face verification.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Used for video verification if needed.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+    <string>This app needs access to location to show where you are on the map.</string>
 </dict>
 </plist>

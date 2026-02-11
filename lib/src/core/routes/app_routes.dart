@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:van_life/dummy_user.dart';
 import 'package:van_life/src/features/auth/presentation/authentication_screen.dart';
 import 'package:van_life/src/features/chat/presentation/chat_screen.dart';
 import 'package:van_life/src/features/home/presentation/home_screen.dart';
@@ -12,17 +13,20 @@ import 'package:van_life/src/features/onboarding/presentation/interest_Onboardin
 import 'package:van_life/src/features/onboarding/presentation/name_onboaring_screen.dart';
 import 'package:van_life/src/features/onboarding/presentation/profile_image_screen.dart';
 import 'package:van_life/src/features/onboarding/presentation/travelStyle_Onboarding_screen.dart';
-import 'package:van_life/src/features/splash/presentation/splash_screen.dart';
 import 'package:van_life/src/features/travel_progress/presentation/travel_progress.dart';
 
 import '../../features/chat/presentation/chat_detailed_screen.dart';
+import '../../features/event/presentation/event_discovery.dart';
 import '../../features/onboarding/presentation/gender_Onboarding_Screen.dart';
+import '../../features/profile/data/models/user_model.dart';
+import '../../features/splash/presentation/splash_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/',
     routes: [
       GoRoute(path: '/', builder: (context, state) => SplashScreen()),
+      // GoRoute(path: '/', builder: (context, state) => DummyUserGenerator()),
       GoRoute(
         path: '/authentication-screen',
         pageBuilder: (context, state) {
@@ -47,6 +51,10 @@ class AppRouter {
       GoRoute(
         path: '/onboarding-name',
         builder: (context, state) => const NameOnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/event-discovery',
+        builder: (context, state) => const EventDiscoveryScreen(),
       ),
       GoRoute(
         path: '/onboarding-age',
@@ -85,7 +93,9 @@ class AppRouter {
       GoRoute(path: '/chat', builder: (context, state) => const ChatScreen()),
       GoRoute(
         path: '/chat-details',
-        builder: (context, state) => const DetailedChatScreen(),
+        builder: (context, state) {
+          return DetailedChatScreen(user: state.extra as UserModel);
+        },
       ),
       // Add more routes for Age, Gender, etc.
     ],

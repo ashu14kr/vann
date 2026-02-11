@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart'; // Added import
+import 'package:van_life/src/features/event/presentation/provider/provider.dart';
 import 'package:van_life/src/features/profile/presentation/edit_profile.dart';
 import 'package:van_life/src/features/profile/presentation/provider/profile_provider.dart';
 import 'package:van_life/src/features/setting/presentation/setting_bottomSheet.dart';
@@ -110,10 +111,18 @@ class _ProfileBottomCardState extends ConsumerState<ProfileBottomCard> {
                         SizedBox(height: 30.h),
                         buildSectionHeader("Events"),
                         SizedBox(height: 15.h),
-                        buildCategoryTabs(),
-                        SizedBox(height: 20.h),
+                        // buildCategoryTabs(),
+                        // SizedBox(height: 20.h),
                         buildEventCard(
-                          () {
+                          (eventId) {
+                            final eventsData =
+                                ref.read(eventController).myEvents;
+                            final event = eventsData.firstWhere(
+                              (evnt) => evnt.eventId == eventId,
+                            );
+                            ref
+                                .read(profileProvider.notifier)
+                                .getUsers(ids: event.attendeeIds);
                             showModalBottomSheet(
                               context: context,
                               isScrollControlled: true,
@@ -127,7 +136,9 @@ class _ProfileBottomCardState extends ConsumerState<ProfileBottomCard> {
                                           context,
                                         ).viewInsets.bottom,
                                   ),
-                                  child: const JoinedEventDetailedBottomSheet(),
+                                  child: JoinedEventDetailedBottomSheet(
+                                    eventId: eventId,
+                                  ),
                                 );
                               },
                             );
@@ -135,6 +146,7 @@ class _ProfileBottomCardState extends ConsumerState<ProfileBottomCard> {
                           user.userModel.eventsHosted,
                           user.userModel.eventsJoined,
                           user.userModel.eventsSaved,
+                          context,
                         ),
                         SizedBox(height: 30.h),
                         buildSectionHeader(

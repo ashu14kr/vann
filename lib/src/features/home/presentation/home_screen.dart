@@ -1,10 +1,14 @@
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart'; // Added import
 import 'package:apple_maps_flutter/apple_maps_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:van_life/src/features/event/presentation/create_event_bottomSheet.dart';
-import 'package:van_life/src/features/event/presentation/event_detail_bottomSheet.dart';
+import 'package:van_life/src/features/event/presentation/provider/provider.dart';
+import 'package:van_life/src/features/home/presentation/provider/home_provider.dart';
 import 'package:van_life/src/features/profile/presentation/provider/profile_provider.dart';
 
 import '../../profile/presentation/profile_BottomCard.dart';
@@ -22,68 +26,84 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   BitmapDescriptor? _carIcon;
   Set<Annotation> _annotations = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _loadCustomIcon();
-  }
-
-  // Load the asset as a BitmapDescriptor
-  Future<void> _loadCustomIcon() async {
-    _carIcon = await BitmapDescriptor.fromAssetImage(
-      const ImageConfiguration(size: Size(20, 20)),
-      'assets/images/cool_sticker.png',
-    );
-    _updateCarPointer(39.0490, -77.1197, 90.0); // Initial position
-  }
-
-  void _updateCarPointer(double lat, double lng, double heading) {
-    if (_carIcon == null) return;
-
-    setState(() {
-      _annotations = {
-        Annotation(
-          annotationId: AnnotationId('car_pointer'),
-          position: LatLng(lat, lng),
-          icon: _carIcon!,
-          onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              barrierColor: Colors.black54,
-              builder: (context) {
-                return Padding(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom,
-                  ),
-                  child: const EventDetailBottomSheet(),
-                );
-              },
-            );
-          },
-          anchor: const Offset(0.5, 0.5),
-        ),
-      };
-    });
-  }
+  AppleMapController? _mapController;
+  Timer? _debounceTimer;
+  double _currentZoom = 12.05; // Default zoom level
 
   @override
   Widget build(BuildContext context) {
+    final events = ref.watch(eventController);
+    final position = ref.watch(homeProvider);
+
+    ref.listen(homeProvider, (previous, next) {
+      if (_mapController != null && next.isLoading != true) {
+        _mapController!.animateCamera(
+          CameraUpdate.newLatLng(
+            LatLng(next.location.latitude, next.location.longitude),
+          ),
+        );
+      }
+    });
     return Scaffold(
       body: Stack(
         children: [
           // 1. APPLE MAP LAYER
           AppleMap(
-            initialCameraPosition: const CameraPosition(
-              target: LatLng(39.0490, -77.1197),
-              zoom: 14,
-              pitch: 60,
-              heading: 0,
+            // minMaxZoomPreference: MinMaxZoomPreference(11, 13),
+            // zoomGesturesEnabled: false,
+            mapType: MapType.standard,
+            onCameraIdle: () async {
+              _debounceTimer?.cancel();
+              if (_mapController == null) return;
+
+              _debounceTimer = Timer(
+                const Duration(milliseconds: 300),
+                () async {
+                  // 1. Get the screen's boundary coordinates
+                  final LatLngBounds bounds =
+                      await _mapController!.getVisibleRegion();
+
+                  _currentZoom = (await _mapController!.getZoomLevel())!;
+                  // 2. Trigger the fetch logic in your Provider
+                  ref
+                      .read(eventController.notifier)
+                      .getEventsByRadius(radiusInKm: 100);
+                  // ref
+                  //     .read(eventController.notifier)
+                  //     .getEventsByRegion(
+                  //       minLat: bounds.southwest.latitude,
+                  //       maxLat: bounds.northeast.latitude,
+                  //       minLng: bounds.southwest.longitude,
+                  //       maxLng: bounds.northeast.longitude,
+                  //     );
+                },
+              );
+            },
+            initialCameraPosition: CameraPosition(
+              target: LatLng(
+                position.location.latitude,
+                position.location.longitude,
+              ),
+              zoom: _currentZoom,
+              // pitch: 60,
+              // heading: 0,
             ),
-            annotations: _annotations,
-            onMapCreated: (AppleMapController controller) {},
+            annotations: {
+              ref.read(homeProvider.notifier).buildUserAnnotations(context),
+              ref.read(homeProvider.notifier).buildUserAnnotations1(context),
+              ref.read(homeProvider.notifier).buildUserAnnotations2(context),
+              ..._annotations, // Your current car/user pointer
+              ...ref
+                  .read(homeProvider.notifier)
+                  .buildAdaptiveMarkers(
+                    _currentZoom,
+                    events.events,
+                    context,
+                  ), // Your dynamic event markers
+            },
+            onMapCreated: (AppleMapController controller) {
+              _mapController = controller;
+            },
           ),
 
           // 2. GRADIENT OVERLAY
@@ -98,26 +118,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  buildExploreLogo(), // Assuming this already uses .sp/.w inside its definition
-                  ProfileView(
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        barrierColor: Colors.black54,
-                        builder: (context) {
-                          return Padding(
-                            padding: EdgeInsets.only(
-                              bottom: MediaQuery.of(context).viewInsets.bottom,
-                            ),
-                            child: const ProfileBottomCard(),
-                          );
-                        },
-                      );
-                    },
-                    image: ref.watch(profileProvider).userModel.profileImages,
+                  buildExploreLogo(),
+                  SizedBox(
+                    height: 150.h,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        ProfileView(
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              barrierColor: Colors.black54,
+                              builder: (context) {
+                                return Padding(
+                                  padding: EdgeInsets.only(
+                                    bottom:
+                                        MediaQuery.of(
+                                          context,
+                                        ).viewInsets.bottom,
+                                  ),
+                                  child: const ProfileBottomCard(),
+                                );
+                              },
+                            );
+                          },
+                          image:
+                              ref
+                                  .watch(profileProvider)
+                                  .userModel
+                                  .profileImages,
+                        ),
+                        // buildCircularNavIcon(
+                        //   Icons.notifications,
+                        //   isSmall: true,
+                        //   ontap: () {
+                        //     context.push('/travel-progress');
+                        //   },
+                        // ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -133,10 +177,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 buildCircularNavIcon(
-                  Icons.public,
+                  CupertinoIcons.globe,
                   isSmall: true,
                   ontap: () {
-                    context.push('/travel-progress');
+                    context.push('/event-discovery');
                   },
                 ),
                 buildCircularNavIcon(

@@ -2,58 +2,66 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../profile/data/models/user_model.dart';
 import '../../../profile/presentation/other_User_ProfileCard.dart';
 
-Widget buildStickerVibeTags() {
-  final List<Map<String, dynamic>> tags = [
-    {'text': 'CALM', 'color': const Color(0xFFD4E157), 'rot': -0.05},
-    {'text': 'SOCIAL', 'color': const Color(0xFF81C784), 'rot': 0.04},
-    {'text': 'NIGHT', 'color': const Color(0xFF00D1FF), 'rot': -0.03},
+Widget buildStickerVibeTags(List<String> vibeTags) {
+  // A vibrant, sticker-style color palette
+  final List<Color> palette = [
+    const Color(0xFFD4E157), // Lime
+    const Color(0xFF81C784), // Green
+    const Color(0xFF00D1FF), // Blue
+    const Color(0xFFFFB74D), // Orange
+    const Color(0xFFBA68C8), // Purple
+    const Color(0xFFF06292), // Pink
   ];
+
+  final List<double> rotations = [-0.05, 0.04, -0.02, 0.03, -0.04];
 
   return Wrap(
     spacing: 12.w,
-    runSpacing: 18.h,
+    runSpacing: 16.h,
     children:
-        tags
-            .map(
-              (tag) => Transform.rotate(
-                angle: tag['rot'],
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 20.w,
-                    vertical: 10.h,
+        vibeTags.asMap().entries.map((entry) {
+          int idx = entry.key;
+          String tag = entry.value.toUpperCase();
+
+          return Transform.rotate(
+            angle:
+                rotations[idx % rotations.length], // Cycles through rotations
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              decoration: BoxDecoration(
+                color: palette[idx % palette.length], // Cycles through colors
+                border: Border.all(color: Colors.white, width: 2.r),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.4),
+                    offset: Offset(3.w, 3.h),
+                    blurRadius: 0, // Keeps it "flat" and sticker-like
                   ),
-                  decoration: BoxDecoration(
-                    color: tag['color'],
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 2.5.w,
-                    ), // Thick white border
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.4),
-                        offset: Offset(4.w, 4.h),
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    tag['text'],
-                    style: GoogleFonts.robotoCondensed(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 18.sp,
-                      color: Colors.black,
-                    ),
-                  ),
+                ],
+              ),
+              child: Text(
+                tag,
+                style: GoogleFonts.robotoCondensed(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16.sp, // Scaled down slightly for "too big" fix
+                  color: Colors.black,
                 ),
               ),
-            )
-            .toList(),
+            ),
+          );
+        }).toList(),
   );
 }
 
-// --- REFINED PARTICIPANTS ---
-Widget buildParticipantsSection(BuildContext context) {
+Widget buildParticipantsSection(
+  BuildContext context, {
+  required List<UserModel> users,
+  required String hostId,
+  required String currentUserId,
+}) {
   return Container(
     padding: EdgeInsets.all(24.r),
     decoration: BoxDecoration(
@@ -77,45 +85,62 @@ Widget buildParticipantsSection(BuildContext context) {
           style: GoogleFonts.poppins(color: Colors.white30, fontSize: 13.sp),
         ),
         SizedBox(height: 20.h),
-        participantItem(
-          "#1",
-          "Sam Altman",
-          "Founder of disciplue",
-          const Color(0xFFFFE600),
-          () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              barrierColor: Colors.black54,
-              builder: (context) {
-                return Padding(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom,
-                  ),
-                  child: const OtherUserProfileCard(
-                    otherUserName: 'Sam Altman',
-                  ),
-                );
-              },
-            );
-          },
-        ),
-        participantItem(
-          "#2",
-          "Ritvik Singh",
-          "Wipro",
-          const Color(0xFFFFA500),
-          () {},
-        ),
-        participantItem(
-          "#3",
-          "Ravi Sastri",
-          "Golfer at MCG",
-          const Color(0xFFA066FF),
-          () {},
-        ),
-        participantItem("#4", "RDJ", "Event Planner", Colors.white24, () {}),
+
+        // --- DYNAMIC LIST START ---
+        if (users.isEmpty)
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 20.h),
+            child: Center(
+              child: Text(
+                "No participants yet",
+                style: GoogleFonts.poppins(color: Colors.white24),
+              ),
+            ),
+          )
+        else
+          Column(
+            children:
+                users.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  UserModel user = entry.value;
+                  Color rankColor =
+                      (index == 0)
+                          ? const Color(0xFFFFE600)
+                          : (index == 1)
+                          ? const Color(0xFFFFA500)
+                          : (index == 2)
+                          ? const Color(0xFFA066FF)
+                          : Colors.white24;
+
+                  return participantItem(
+                    "#${index + 1}",
+                    user.displayName,
+                    user.bio ?? "Member",
+                    rankColor,
+                    user.profileImages,
+                    user.uid == hostId ? true : false,
+                    user.uid == currentUserId
+                        ? null
+                        : () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            barrierColor: Colors.black54,
+                            builder: (context) {
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                  bottom:
+                                      MediaQuery.of(context).viewInsets.bottom,
+                                ),
+                                child: OtherUserProfileCard(user: user),
+                              );
+                            },
+                          );
+                        },
+                  );
+                }).toList(),
+          ),
       ],
     ),
   );
@@ -126,63 +151,117 @@ Widget participantItem(
   String name,
   String sub,
   Color rankColor,
+  List<String> image,
+  bool isHost,
   VoidCallback? ontap,
 ) {
   return Padding(
     padding: EdgeInsets.only(bottom: 25.h),
     child: InkWell(
       onTap: ontap,
+      borderRadius: BorderRadius.circular(12.r),
       child: Row(
         children: [
+          // 1. Rank Section (Fixed width ensures alignment)
+          SizedBox(
+            width: 55.w,
+            child: Stack(
+              children: [
+                Text(
+                  rank,
+                  style: GoogleFonts.robotoCondensed(
+                    fontSize: 32.sp,
+                    fontWeight: FontWeight.w900,
+                    foreground:
+                        Paint()
+                          ..style = PaintingStyle.stroke
+                          ..strokeWidth = 6.w
+                          ..color = Colors.white,
+                  ),
+                ),
+                Text(
+                  rank,
+                  style: GoogleFonts.robotoCondensed(
+                    fontSize: 32.sp,
+                    fontWeight: FontWeight.w900,
+                    color: rankColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(width: 5.w),
+
+          // 2. Avatar Section with Top-Right Crown
           Stack(
+            clipBehavior: Clip.none, // Allows crown to hang outside the circle
             children: [
-              Text(
-                rank,
-                style: GoogleFonts.robotoCondensed(
-                  fontSize: 32.sp,
-                  fontWeight: FontWeight.w900,
-                  foreground:
-                      Paint()
-                        ..style = PaintingStyle.stroke
-                        ..strokeWidth = 6.w
-                        ..color = Colors.white,
+              CircleAvatar(
+                radius: 28.r,
+                backgroundColor:
+                    isHost ? const Color(0xFFFFE600) : Colors.transparent,
+                child: CircleAvatar(
+                  radius: 26.r, // Smaller radius creates the gold border effect
+                  backgroundImage:
+                      image.isEmpty
+                          ? const AssetImage('assets/images/male_avatar.png')
+                          : NetworkImage(image.first) as ImageProvider,
                 ),
               ),
-              Text(
-                rank,
-                style: GoogleFonts.robotoCondensed(
-                  fontSize: 32.sp,
-                  fontWeight: FontWeight.w900,
-                  color: rankColor,
+              if (isHost)
+                Positioned(
+                  top: -12.h, // Pulls emoji up
+                  right: -8.w, // Pulls emoji to the right
+                  child: Transform.rotate(
+                    angle: 0.25, // Tilts the crown slightly (approx 15 degrees)
+                    child: Text(
+                      '👑',
+                      style: TextStyle(
+                        fontSize: 22.sp,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 10.0,
+                            color: Colors.black.withOpacity(0.5),
+                            offset: const Offset(2, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
-          SizedBox(width: 20.w),
-          CircleAvatar(
-            radius: 28.r,
-            backgroundImage: const AssetImage('assets/images/profile.png'),
-          ),
+
           SizedBox(width: 15.w),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name,
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 17.sp,
+
+          // 3. Text Section (Wrapped in Expanded to fix overflow)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 17.sp,
+                  ),
                 ),
-              ),
-              Text(
-                sub,
-                style: GoogleFonts.poppins(
-                  color: Colors.white38,
-                  fontSize: 13.sp,
+                Text(
+                  sub,
+                  maxLines: 1, // Strictly one line as requested
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white38,
+                    fontSize: 13.sp,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -191,27 +270,19 @@ Widget participantItem(
 }
 
 // --- HELPERS ---
-Widget buildStackedHostAvatars() {
-  return SizedBox(
-    width: 110.w,
-    height: 45.h,
-    child: Stack(
-      children: List.generate(3, (index) {
-        return Positioned(
-          right: index * 28.0.w,
-          child: Container(
-            padding: EdgeInsets.all(2.r),
-            decoration: const BoxDecoration(
-              color: Colors.black,
-              shape: BoxShape.circle,
-            ),
-            child: CircleAvatar(
-              radius: 20.r,
-              backgroundImage: const AssetImage('assets/images/profile.png'),
-            ),
-          ),
-        );
-      }),
+Widget buildHostAvatar(List<String> hostImage) {
+  return Container(
+    padding: const EdgeInsets.all(3),
+    decoration: const BoxDecoration(
+      color: Colors.white,
+      shape: BoxShape.circle,
+    ),
+    child: CircleAvatar(
+      radius: 23, // Bigger avatar
+      backgroundImage:
+          hostImage.isEmpty
+              ? AssetImage('assets/images/male_avatar.png')
+              : NetworkImage(hostImage.first),
     ),
   );
 }
